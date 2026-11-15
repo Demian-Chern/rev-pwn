@@ -36,6 +36,9 @@
 - **heap** — скелет под heap-челлендж: парсит меню (alloc/free/edit/show + номера
   и промпты), генерит обёртки `alloc/free/edit/show` и шпаргалку по
   tcache/UAF/double-free.
+- **web** — локальный веб-интерфейс в браузере (на stdlib, без зависимостей):
+  панель с кнопками на все команды и цветным выводом. Слушает только `127.0.0.1`,
+  API защищён токеном.
 - **libcid** — определение libc по утечке: `--leak puts=0x..340` → подбирает
   версию libc (онлайн через libc.rip или офлайн по папке `--libs`), считает базу
   из лика и резолвит `system`/`str_bin_sh`/прочее. С `--download` качает опознанную
@@ -62,6 +65,7 @@ ctfkit/
   onegadget.py    обёртка над one_gadget + парсер constraints
   libcid.py       определение libc по leak (libc.rip + офлайн)
   heap.py         парсер меню + генератор heap-скелета
+  web.py          локальный веб-интерфейс (stdlib http.server)
   libc.py         ret2libc-хелпер + команда libc
   tui.py          интерактивное меню
   cli.py          argparse + диспетчер
@@ -142,6 +146,9 @@ python3 -m ctfkit pwn ./chall --libc ./libc.so.6       # вписать libc + o
 ```
 ```bash
 python3 -m ctfkit heap ./chall -o heap.py              # скелет под heap-челлендж
+```
+```bash
+python3 -m ctfkit web                                   # веб-интерфейс в браузере
 ```
 ```bash
 python3 -m ctfkit rop ./chall

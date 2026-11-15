@@ -15,6 +15,13 @@ class C:
         R = G = Y = B = M = CY = W = GR = BOLD = DIM = RST = ""
 
 
+def force_color():
+    """Force-enable ANSI on C (used by the web UI, which converts it to HTML)."""
+    C.R = "\033[31m"; C.G = "\033[32m"; C.Y = "\033[33m"; C.B = "\033[34m"
+    C.M = "\033[35m"; C.CY = "\033[36m"; C.W = "\033[37m"; C.GR = "\033[90m"
+    C.BOLD = "\033[1m"; C.DIM = "\033[2m"; C.RST = "\033[0m"
+
+
 def hdr(title):
     print(f"\n{C.BOLD}{C.CY}== {title} =={C.RST}")
 

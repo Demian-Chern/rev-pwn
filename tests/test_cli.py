@@ -51,6 +51,13 @@ def test_pwn_libc_leak_flag():
     assert ns.libc_leak == ["puts=0x340", "printf=0xf90"]
 
 
+def test_web_parses_without_positional():
+    ns = build_parser().parse_args(["web", "--port", "9999", "--no-browser"])
+    assert ns.cmd == "web"
+    assert ns.port == 9999
+    assert ns.no_browser is True
+
+
 def test_libcid_has_no_positional_file(monkeypatch):
     # libcid takes no path positional; main must not run a file-existence check
     called = {}

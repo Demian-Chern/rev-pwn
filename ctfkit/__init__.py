@@ -7,4 +7,4 @@ Works best with pwntools installed; degrades gracefully to readelf/objdump/nm
 so it stays useful even on a bare remote box.
 """
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"

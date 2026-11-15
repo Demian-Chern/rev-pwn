@@ -15,6 +15,7 @@ from .rop import cmd_rop
 from .triage import cmd_triage
 from .tui import tui
 from .ui import bad
+from .web import cmd_web
 
 
 def build_parser():
@@ -32,6 +33,7 @@ def build_parser():
               ctfkit onegadget ./libc.so.6            # magic execve gadgets
               ctfkit libcid --leak puts=0x7f..340     # identify libc from a leak
               ctfkit heap ./chall                     # scaffold a heap exploit
+              ctfkit web                              # local web UI (browser)
               ctfkit rop ./chall
               ctfkit libc ./chall ./libc.so.6
               ctfkit                 # interactive menu
@@ -92,6 +94,13 @@ def build_parser():
     sp.add_argument("--port", type=int, default=0, help="remote port")
     sp.add_argument("--libc", default=None, help="libc ELF to reference in the skeleton")
 
+    sp = sub.add_parser("web", help="launch a local web UI in the browser")
+    sp.add_argument("--port", type=int, default=8777, help="port (default 8777)")
+    sp.add_argument("--host", default="127.0.0.1",
+                    help="bind address (default 127.0.0.1; keep it local)")
+    sp.add_argument("--no-browser", action="store_true",
+                    help="don't auto-open the browser")
+
     sp = sub.add_parser("rop", help="dump useful ROP gadgets")
     sp.add_argument("binary")
 
@@ -141,6 +150,8 @@ def main(argv=None):
                        update=args.update)
         elif args.cmd == "heap":
             cmd_heap(args.binary, args.out, args.host, args.port, libc=args.libc)
+        elif args.cmd == "web":
+            cmd_web(port=args.port, no_browser=args.no_browser, host=args.host)
         elif args.cmd == "rop":
             cmd_rop(args.binary)
         elif args.cmd == "libc":

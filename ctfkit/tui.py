@@ -10,6 +10,7 @@ from .pwngen import cmd_pwn
 from .rop import cmd_rop
 from .triage import cmd_triage
 from .ui import BANNER, C, bad, warn
+from .web import cmd_web
 
 
 def tui():
@@ -37,6 +38,7 @@ def tui():
   {C.G}5{C.RST}) Auto-find overflow offset (runs the binary)
   {C.G}6{C.RST}) Identify libc from a leak (libc.rip / local)
   {C.G}7{C.RST}) Scaffold a heap exploit (menu wrappers)
+  {C.G}8{C.RST}) Launch the web UI (browser)
   {C.G}q{C.RST}) Quit
 """)
         choice = input(f"{C.BOLD}> {C.RST}").strip().lower()
@@ -82,6 +84,8 @@ def tui():
         elif choice == "7":
             out = input("  output file [heap.py]: ").strip() or "heap.py"
             cmd_heap(binpath, out, "CHANGE_ME", 0)
+        elif choice == "8":
+            cmd_web()                       # blocks until Ctrl-C, then back to menu
         elif choice in ("q", "quit", "exit"):
             break
         else:
