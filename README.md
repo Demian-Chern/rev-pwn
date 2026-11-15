@@ -33,6 +33,9 @@
 - **rop** — полезные гаджеты (`pop rdi; ret`, `leave; ret`, `syscall`…) и `/bin/sh`.
 - **onegadget** — магические адреса `execve("/bin/sh")` из libc через `one_gadget`,
   с их constraints. Встроено и в `libc`, и в `pwn --libc` (впишет в скелет).
+- **libcid** — определение libc по утечке: `--leak puts=0x..340` → подбирает
+  версию libc (онлайн через libc.rip или офлайн по папке `--libs`), считает базу
+  из лика и резолвит `system`/`str_bin_sh`/прочее.
 - **libc** — GOT/PLT + заметки по ret2libc; с переданным `libc.so.6` вытащит
   оффсеты `system`/`puts`/`/bin/sh` и one_gadget'ы.
 - **без аргументов** — интерактивное меню (TUI).
@@ -52,6 +55,7 @@ ctfkit/
   pwngen.py       шаблон и генератор эксплойта + команда pwn
   offset.py       авто-поиск BOF-оффсета (свой cyclic + gdb)
   onegadget.py    обёртка над one_gadget + парсер constraints
+  libcid.py       определение libc по leak (libc.rip + офлайн)
   libc.py         ret2libc-хелпер + команда libc
   tui.py          интерактивное меню
   cli.py          argparse + диспетчер
@@ -116,6 +120,12 @@ python3 -m ctfkit offset ./chall --update exploit.py   # и вписать ег�
 python3 -m ctfkit onegadget ./libc.so.6                # магические execve-гаджеты
 ```
 ```bash
+python3 -m ctfkit libcid --leak puts=0x7f3b2c0a4340    # опознать libc по утечке
+```
+```bash
+python3 -m ctfkit libcid --leak puts=0x..340 --libs ./libs   # офлайн, по своей папке
+```
+```bash
 python3 -m ctfkit pwn ./chall --libc ./libc.so.6       # вписать libc + one_gadget'ы
 ```
 ```bash
@@ -157,6 +167,6 @@ python -m pytest
 
 ## Хотелки на будущее
 
-- интеграция с `libc-database` / поиск libc по leak
 - парсер меню heap-челленджей в готовые `alloc/free/edit/show`
 - доставка паттерна через `recvuntil`-промпт и сокет (для авто-оффсета по сети)
+- авто-скачивание опознанной libc (по запросу) и подстановка в `pwn --libc`

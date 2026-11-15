@@ -3,6 +3,7 @@ import os
 
 from .elf import HAVE_PWNTOOLS, load_binary
 from .libc import cmd_libc
+from .libcid import cmd_libcid
 from .offset import cmd_offset
 from .pwngen import cmd_pwn
 from .rop import cmd_rop
@@ -33,6 +34,7 @@ def tui():
   {C.G}3{C.RST}) ROP gadgets + /bin/sh
   {C.G}4{C.RST}) GOT/PLT + ret2libc notes
   {C.G}5{C.RST}) Auto-find overflow offset (runs the binary)
+  {C.G}6{C.RST}) Identify libc from a leak (libc.rip / local)
   {C.G}q{C.RST}) Quit
 """)
         choice = input(f"{C.BOLD}> {C.RST}").strip().lower()
@@ -63,6 +65,14 @@ def tui():
                 ln = 200
             upd = input("  patch into which exploit file? (optional): ").strip() or None
             cmd_offset(binpath, length=ln, update=upd)
+        elif choice == "6":
+            raw = input("  leaks (e.g. puts=0x..340 printf=0x..f90): ").strip()
+            leaks = [t for t in raw.split() if "=" in t]
+            if not leaks:
+                warn("no leaks given")
+                continue
+            libs = input("  local libc folder? (blank = query libc.rip): ").strip() or None
+            cmd_libcid(leaks, libs=libs, online=libs is None)
         elif choice in ("q", "quit", "exit"):
             break
         else:

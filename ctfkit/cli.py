@@ -6,6 +6,7 @@ import textwrap
 
 from . import __version__
 from .libc import cmd_libc
+from .libcid import cmd_libcid
 from .offset import cmd_offset
 from .onegadget import cmd_onegadget
 from .pwngen import cmd_pwn
@@ -28,6 +29,7 @@ def build_parser():
               ctfkit pwn ./chall --libc ./libc.so.6   # embed libc + one_gadgets
               ctfkit offset ./chall                   # just find the BOF offset
               ctfkit onegadget ./libc.so.6            # magic execve gadgets
+              ctfkit libcid --leak puts=0x7f..340     # identify libc from a leak
               ctfkit rop ./chall
               ctfkit libc ./chall ./libc.so.6
               ctfkit                 # interactive menu
@@ -57,6 +59,16 @@ def build_parser():
     sp.add_argument("-l", "--level", type=int, default=0,
                     help="one_gadget search level (higher = more gadgets)")
     sp.add_argument("--raw", action="store_true", help="print just the offsets")
+
+    sp = sub.add_parser("libcid", help="identify libc from a leaked symbol address")
+    sp.add_argument("--leak", action="append", metavar="SYM=ADDR", default=[],
+                    help="a leaked symbol address, e.g. puts=0x7f..340 (repeatable)")
+    sp.add_argument("--libs", default=None, metavar="DIR",
+                    help="match offline against a folder of libc files (no network)")
+    sp.add_argument("--offline", action="store_true",
+                    help="do not query libc.rip (requires --libs)")
+    sp.add_argument("--timeout", type=int, default=10,
+                    help="libc.rip request timeout in seconds (default 10)")
 
     sp = sub.add_parser("offset", help="auto-find the stack overflow offset (runs it)")
     sp.add_argument("binary")
@@ -89,9 +101,14 @@ def main(argv=None):
             print()
         return 0
 
-    # the positional file is `binary` for most commands, `libc` for onegadget
-    target = args.libc if args.cmd == "onegadget" else args.binary
-    if not os.path.exists(target):
+    # commands that take a filesystem path as their positional argument
+    if args.cmd in ("triage", "pwn", "offset", "rop", "libc"):
+        target = args.binary
+    elif args.cmd == "onegadget":
+        target = args.libc
+    else:
+        target = None                       # libcid: no positional file
+    if target is not None and not os.path.exists(target):
         bad(f"file not found: {target}")
         return 1
     try:
@@ -103,6 +120,9 @@ def main(argv=None):
                     libc=args.libc)
         elif args.cmd == "onegadget":
             cmd_onegadget(args.libc, level=args.level, raw=args.raw)
+        elif args.cmd == "libcid":
+            cmd_libcid(args.leak, libs=args.libs, online=not args.offline,
+                       timeout=args.timeout)
         elif args.cmd == "offset":
             cmd_offset(args.binary, length=args.length, arg=args.arg,
                        update=args.update)

@@ -26,6 +26,23 @@ def test_pwn_flags_parse():
     assert ns.libc == "libc.so"
 
 
+def test_libcid_flags_parse():
+    ns = build_parser().parse_args(
+        ["libcid", "--leak", "puts=0x340", "--leak", "printf=0xf90", "--offline"])
+    assert ns.cmd == "libcid"
+    assert ns.leak == ["puts=0x340", "printf=0xf90"]
+    assert ns.offline is True
+
+
+def test_libcid_has_no_positional_file(monkeypatch):
+    # libcid takes no path positional; main must not run a file-existence check
+    called = {}
+    monkeypatch.setattr(cli, "cmd_libcid",
+                        lambda *a, **k: called.setdefault("ran", True))
+    assert main(["libcid", "--leak", "puts=0x340", "--offline"]) == 0
+    assert called.get("ran") is True
+
+
 def test_version_exits_zero(capsys):
     with pytest.raises(SystemExit) as exc:
         main(["--version"])
