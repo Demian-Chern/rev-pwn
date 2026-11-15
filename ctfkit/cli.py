@@ -1,0 +1,118 @@
+"""Command-line interface: argument parsing and dispatch."""
+import argparse
+import os
+import sys
+import textwrap
+
+from . import __version__
+from .libc import cmd_libc
+from .offset import cmd_offset
+from .onegadget import cmd_onegadget
+from .pwngen import cmd_pwn
+from .rop import cmd_rop
+from .triage import cmd_triage
+from .tui import tui
+from .ui import bad
+
+
+def build_parser():
+    p = argparse.ArgumentParser(
+        prog="ctfkit",
+        description="CTF helper for Linux ELF x86-64 (rev + pwn).",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent("""\
+            examples:
+              ctfkit triage ./chall
+              ctfkit pwn ./chall -o exploit.py --host ctf.io --port 1337
+              ctfkit pwn ./chall --auto-offset        # run it, bake OFFSET in
+              ctfkit pwn ./chall --libc ./libc.so.6   # embed libc + one_gadgets
+              ctfkit offset ./chall                   # just find the BOF offset
+              ctfkit onegadget ./libc.so.6            # magic execve gadgets
+              ctfkit rop ./chall
+              ctfkit libc ./chall ./libc.so.6
+              ctfkit                 # interactive menu
+        """),
+    )
+    p.add_argument("--version", action="version",
+                   version=f"ctfkit {__version__}")
+    sub = p.add_subparsers(dest="cmd")
+
+    sp = sub.add_parser("triage", help="full RE triage of a binary")
+    sp.add_argument("binary")
+
+    sp = sub.add_parser("pwn", help="generate a pwntools exploit skeleton")
+    sp.add_argument("binary")
+    sp.add_argument("-o", "--out", default="exploit.py", help="output script path")
+    sp.add_argument("--host", default="CHANGE_ME", help="remote host")
+    sp.add_argument("--port", type=int, default=0, help="remote port")
+    sp.add_argument("--auto-offset", action="store_true",
+                    help="run the binary under gdb to auto-fill OFFSET (executes it)")
+    sp.add_argument("--off-len", type=int, default=200,
+                    help="cyclic pattern length for --auto-offset (default 200)")
+    sp.add_argument("--libc", default=None, metavar="LIBC",
+                    help="embed libc ELF + one_gadget offsets into the skeleton")
+
+    sp = sub.add_parser("onegadget", help="list one_gadget execve gadgets in a libc")
+    sp.add_argument("libc")
+    sp.add_argument("-l", "--level", type=int, default=0,
+                    help="one_gadget search level (higher = more gadgets)")
+    sp.add_argument("--raw", action="store_true", help="print just the offsets")
+
+    sp = sub.add_parser("offset", help="auto-find the stack overflow offset (runs it)")
+    sp.add_argument("binary")
+    sp.add_argument("--len", type=int, default=200, dest="length",
+                    help="cyclic pattern length (default 200)")
+    sp.add_argument("--arg", action="store_true",
+                    help="deliver the pattern as argv[1] instead of stdin")
+    sp.add_argument("--update", default=None, metavar="FILE",
+                    help="patch OFFSET = <n> into an existing exploit script")
+
+    sp = sub.add_parser("rop", help="dump useful ROP gadgets")
+    sp.add_argument("binary")
+
+    sp = sub.add_parser("libc", help="GOT/PLT and ret2libc helper")
+    sp.add_argument("binary")
+    sp.add_argument("libc", nargs="?", default=None, help="optional libc.so path")
+
+    return p
+
+
+def main(argv=None):
+    argv = argv if argv is not None else sys.argv[1:]
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if args.cmd is None:
+        try:
+            tui()
+        except (KeyboardInterrupt, EOFError):
+            print()
+        return 0
+
+    # the positional file is `binary` for most commands, `libc` for onegadget
+    target = args.libc if args.cmd == "onegadget" else args.binary
+    if not os.path.exists(target):
+        bad(f"file not found: {target}")
+        return 1
+    try:
+        if args.cmd == "triage":
+            cmd_triage(args.binary)
+        elif args.cmd == "pwn":
+            cmd_pwn(args.binary, args.out, args.host, args.port,
+                    auto_offset=args.auto_offset, off_len=args.off_len,
+                    libc=args.libc)
+        elif args.cmd == "onegadget":
+            cmd_onegadget(args.libc, level=args.level, raw=args.raw)
+        elif args.cmd == "offset":
+            cmd_offset(args.binary, length=args.length, arg=args.arg,
+                       update=args.update)
+        elif args.cmd == "rop":
+            cmd_rop(args.binary)
+        elif args.cmd == "libc":
+            cmd_libc(args.binary, args.libc)
+    except ValueError as e:
+        bad(str(e))
+        return 1
+    except KeyboardInterrupt:
+        print()
+    return 0

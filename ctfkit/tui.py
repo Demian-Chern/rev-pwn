@@ -1,0 +1,69 @@
+"""Interactive menu (shown when ctfkit is run with no subcommand)."""
+import os
+
+from .elf import HAVE_PWNTOOLS, load_binary
+from .libc import cmd_libc
+from .offset import cmd_offset
+from .pwngen import cmd_pwn
+from .rop import cmd_rop
+from .triage import cmd_triage
+from .ui import BANNER, C, bad, warn
+
+
+def tui():
+    print(f"{C.CY}{BANNER}{C.RST}")
+    if not HAVE_PWNTOOLS:
+        warn("pwntools not found -> fallback mode (readelf/objdump/nm).")
+    binpath = input(f"{C.BOLD}Path to ELF binary:{C.RST} ").strip()
+    binpath = binpath.strip('"').strip("'")
+    if not binpath or not os.path.exists(binpath):
+        bad("file not found")
+        return
+    try:
+        load_binary(binpath)
+    except Exception as e:
+        bad(f"not a valid ELF: {e}")
+        return
+
+    while True:
+        print(f"""
+{C.BOLD}Choose an action for {C.CY}{binpath}{C.RST}{C.BOLD}:{C.RST}
+  {C.G}1{C.RST}) Full triage (checksec, imports, strings, win funcs, vuln guess)
+  {C.G}2{C.RST}) Generate pwntools exploit skeleton
+  {C.G}3{C.RST}) ROP gadgets + /bin/sh
+  {C.G}4{C.RST}) GOT/PLT + ret2libc notes
+  {C.G}5{C.RST}) Auto-find overflow offset (runs the binary)
+  {C.G}q{C.RST}) Quit
+""")
+        choice = input(f"{C.BOLD}> {C.RST}").strip().lower()
+        if choice == "1":
+            cmd_triage(binpath)
+        elif choice == "2":
+            out = input("  output file [exploit.py]: ").strip() or "exploit.py"
+            host = input("  remote host [CHANGE_ME]: ").strip() or "CHANGE_ME"
+            port = input("  remote port [0]: ").strip() or "0"
+            try:
+                port = int(port)
+            except ValueError:
+                port = 0
+            ao = input("  auto-find offset now? (runs binary) [y/N]: ").strip().lower()
+            lc = input("  libc path for one_gadget (optional): ").strip() or None
+            cmd_pwn(binpath, out, host, port,
+                    auto_offset=ao in ("y", "yes"), libc=lc)
+        elif choice == "3":
+            cmd_rop(binpath)
+        elif choice == "4":
+            lc = input("  libc path (optional): ").strip() or None
+            cmd_libc(binpath, lc)
+        elif choice == "5":
+            ln = input("  pattern length [200]: ").strip() or "200"
+            try:
+                ln = int(ln)
+            except ValueError:
+                ln = 200
+            upd = input("  patch into which exploit file? (optional): ").strip() or None
+            cmd_offset(binpath, length=ln, update=upd)
+        elif choice in ("q", "quit", "exit"):
+            break
+        else:
+            warn("unknown choice")

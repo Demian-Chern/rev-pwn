@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.build_stage/
+
+# venv
+.venv/
+venv/
+env/
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ctfkit working files (don't commit challenge binaries or generated exploits)
+*.pyc
+exploit.py
+exploit_*.py
+core
+*.core
+# keep the prebuilt single-file bundle (see README): ctfkit.pyz is tracked

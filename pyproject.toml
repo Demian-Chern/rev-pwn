@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ctfkit"
+version = "0.4.0"
+description = "CTF helper for Linux ELF x86-64 (rev + pwn): triage, exploit-skeleton generation, ROP/GOT helpers"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = ["ctf", "pwn", "reverse-engineering", "elf", "pwntools", "rop"]
+dependencies = []
+
+# Core works with no deps (fallback mode on readelf/objdump/nm).
+# Install the full experience with:  pip install "ctfkit[full]"
+[project.optional-dependencies]
+full = ["pwntools>=4.11"]
+
+[project.scripts]
+ctfkit = "ctfkit.cli:main"
+
+[tool.setuptools]
+packages = ["ctfkit"]
