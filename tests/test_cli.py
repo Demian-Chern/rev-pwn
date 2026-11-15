@@ -10,6 +10,7 @@ from ctfkit.cli import build_parser, main
     (["pwn", "b"], "pwn"),
     (["offset", "b"], "offset"),
     (["onegadget", "libc"], "onegadget"),
+    (["heap", "b"], "heap"),
     (["rop", "b"], "rop"),
     (["libc", "b"], "libc"),
 ])

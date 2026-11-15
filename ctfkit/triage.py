@@ -96,7 +96,7 @@ def guess_vuln(sec, hits, wins):
                                "string + control of RDI.")
     if {"malloc", "free"} & h:
         suggestions.append("malloc/free present -> likely a HEAP challenge "
-                           "(UAF / double-free / tcache). Inspect the menu loop.")
+                           "(UAF / double-free / tcache). Try `ctfkit heap <bin>`.")
     if {"mprotect", "mmap"} & h and not sec["nx"]:
         suggestions.append("RWX possible -> shellcode injection on stack.")
     if not sec["nx"]:

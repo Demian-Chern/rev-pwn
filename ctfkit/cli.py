@@ -5,6 +5,7 @@ import sys
 import textwrap
 
 from . import __version__
+from .heap import cmd_heap
 from .libc import cmd_libc
 from .libcid import cmd_libcid
 from .offset import cmd_offset
@@ -30,6 +31,7 @@ def build_parser():
               ctfkit offset ./chall                   # just find the BOF offset
               ctfkit onegadget ./libc.so.6            # magic execve gadgets
               ctfkit libcid --leak puts=0x7f..340     # identify libc from a leak
+              ctfkit heap ./chall                     # scaffold a heap exploit
               ctfkit rop ./chall
               ctfkit libc ./chall ./libc.so.6
               ctfkit                 # interactive menu
@@ -79,6 +81,13 @@ def build_parser():
     sp.add_argument("--update", default=None, metavar="FILE",
                     help="patch OFFSET = <n> into an existing exploit script")
 
+    sp = sub.add_parser("heap", help="scaffold a heap exploit (menu wrappers)")
+    sp.add_argument("binary")
+    sp.add_argument("-o", "--out", default="heap.py", help="output script path")
+    sp.add_argument("--host", default="CHANGE_ME", help="remote host")
+    sp.add_argument("--port", type=int, default=0, help="remote port")
+    sp.add_argument("--libc", default=None, help="libc ELF to reference in the skeleton")
+
     sp = sub.add_parser("rop", help="dump useful ROP gadgets")
     sp.add_argument("binary")
 
@@ -102,7 +111,7 @@ def main(argv=None):
         return 0
 
     # commands that take a filesystem path as their positional argument
-    if args.cmd in ("triage", "pwn", "offset", "rop", "libc"):
+    if args.cmd in ("triage", "pwn", "offset", "rop", "libc", "heap"):
         target = args.binary
     elif args.cmd == "onegadget":
         target = args.libc
@@ -126,6 +135,8 @@ def main(argv=None):
         elif args.cmd == "offset":
             cmd_offset(args.binary, length=args.length, arg=args.arg,
                        update=args.update)
+        elif args.cmd == "heap":
+            cmd_heap(args.binary, args.out, args.host, args.port, libc=args.libc)
         elif args.cmd == "rop":
             cmd_rop(args.binary)
         elif args.cmd == "libc":

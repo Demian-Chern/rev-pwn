@@ -2,6 +2,7 @@
 import os
 
 from .elf import HAVE_PWNTOOLS, load_binary
+from .heap import cmd_heap
 from .libc import cmd_libc
 from .libcid import cmd_libcid
 from .offset import cmd_offset
@@ -35,6 +36,7 @@ def tui():
   {C.G}4{C.RST}) GOT/PLT + ret2libc notes
   {C.G}5{C.RST}) Auto-find overflow offset (runs the binary)
   {C.G}6{C.RST}) Identify libc from a leak (libc.rip / local)
+  {C.G}7{C.RST}) Scaffold a heap exploit (menu wrappers)
   {C.G}q{C.RST}) Quit
 """)
         choice = input(f"{C.BOLD}> {C.RST}").strip().lower()
@@ -73,6 +75,9 @@ def tui():
                 continue
             libs = input("  local libc folder? (blank = query libc.rip): ").strip() or None
             cmd_libcid(leaks, libs=libs, online=libs is None)
+        elif choice == "7":
+            out = input("  output file [heap.py]: ").strip() or "heap.py"
+            cmd_heap(binpath, out, "CHANGE_ME", 0)
         elif choice in ("q", "quit", "exit"):
             break
         else:

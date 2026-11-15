@@ -33,6 +33,9 @@
 - **rop** — полезные гаджеты (`pop rdi; ret`, `leave; ret`, `syscall`…) и `/bin/sh`.
 - **onegadget** — магические адреса `execve("/bin/sh")` из libc через `one_gadget`,
   с их constraints. Встроено и в `libc`, и в `pwn --libc` (впишет в скелет).
+- **heap** — скелет под heap-челлендж: парсит меню (alloc/free/edit/show + номера
+  и промпты), генерит обёртки `alloc/free/edit/show` и шпаргалку по
+  tcache/UAF/double-free.
 - **libcid** — определение libc по утечке: `--leak puts=0x..340` → подбирает
   версию libc (онлайн через libc.rip или офлайн по папке `--libs`), считает базу
   из лика и резолвит `system`/`str_bin_sh`/прочее.
@@ -56,6 +59,7 @@ ctfkit/
   offset.py       авто-поиск BOF-оффсета (свой cyclic + gdb)
   onegadget.py    обёртка над one_gadget + парсер constraints
   libcid.py       определение libc по leak (libc.rip + офлайн)
+  heap.py         парсер меню + генератор heap-скелета
   libc.py         ret2libc-хелпер + команда libc
   tui.py          интерактивное меню
   cli.py          argparse + диспетчер
@@ -129,6 +133,9 @@ python3 -m ctfkit libcid --leak puts=0x..340 --libs ./libs   # офлайн, п�
 python3 -m ctfkit pwn ./chall --libc ./libc.so.6       # вписать libc + one_gadget'ы
 ```
 ```bash
+python3 -m ctfkit heap ./chall -o heap.py              # скелет под heap-челлендж
+```
+```bash
 python3 -m ctfkit rop ./chall
 ```
 ```bash
@@ -167,6 +174,6 @@ python -m pytest
 
 ## Хотелки на будущее
 
-- парсер меню heap-челленджей в готовые `alloc/free/edit/show`
 - доставка паттерна через `recvuntil`-промпт и сокет (для авто-оффсета по сети)
 - авто-скачивание опознанной libc (по запросу) и подстановка в `pwn --libc`
+- готовые заготовки эксплойтов под конкретные техники (house-of-*, FSOP)
