@@ -217,7 +217,7 @@ def short_vulnhint(sec, h, wins):
 
 
 def generate_exploit(path, outpath, host, port, auto_offset=False, off_len=200,
-                     libc=None):
+                     libc=None, libc_leak=None):
     pelf, mini = load_binary(path)
     sec = silent_sec(pelf, mini)
     local, imported = get_symbols(pelf, mini)
@@ -235,6 +235,23 @@ def generate_exploit(path, outpath, host, port, auto_offset=False, off_len=200,
         else:
             warn(f"auto-offset failed ({ometa.get('error') or 'no pattern in crash'});"
                  " leaving OFFSET = 0")
+
+    if libc_leak and not libc:
+        from .libcid import identify_and_download, parse_leaks  # on demand
+        try:
+            leaks = parse_leaks(libc_leak)
+        except ValueError as e:
+            warn(f"--libc-leak: {e}")
+            leaks = None
+        if leaks:
+            info("identifying libc via libc.rip and downloading it ...")
+            dest_dir = os.path.dirname(outpath) or "."
+            lpath, match, lerr = identify_and_download(leaks, dest_dir)
+            if lpath:
+                good(f"libc: {match.get('id')} -> {lpath}")
+                libc = lpath
+            else:
+                warn(f"libc auto-fetch failed ({lerr}); continuing without libc")
 
     onegadgets = None
     if libc:
@@ -274,6 +291,7 @@ def generate_exploit(path, outpath, host, port, auto_offset=False, off_len=200,
         warn("pwntools not installed here; the script still needs it to run.")
 
 
-def cmd_pwn(path, out, host, port, auto_offset=False, off_len=200, libc=None):
+def cmd_pwn(path, out, host, port, auto_offset=False, off_len=200, libc=None,
+           libc_leak=None):
     generate_exploit(path, out, host, port, auto_offset=auto_offset,
-                     off_len=off_len, libc=libc)
+                     off_len=off_len, libc=libc, libc_leak=libc_leak)

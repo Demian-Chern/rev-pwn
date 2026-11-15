@@ -35,6 +35,22 @@ def test_libcid_flags_parse():
     assert ns.offline is True
 
 
+def test_libcid_download_flag():
+    ns = build_parser().parse_args(["libcid", "--leak", "puts=0x340", "--download"])
+    assert ns.download == "."                     # const when given bare
+    ns2 = build_parser().parse_args(
+        ["libcid", "--leak", "puts=0x340", "--download", "libs"])
+    assert ns2.download == "libs"
+    ns3 = build_parser().parse_args(["libcid", "--leak", "puts=0x340"])
+    assert ns3.download is None                   # absent
+
+
+def test_pwn_libc_leak_flag():
+    ns = build_parser().parse_args(
+        ["pwn", "b", "--libc-leak", "puts=0x340", "--libc-leak", "printf=0xf90"])
+    assert ns.libc_leak == ["puts=0x340", "printf=0xf90"]
+
+
 def test_libcid_has_no_positional_file(monkeypatch):
     # libcid takes no path positional; main must not run a file-existence check
     called = {}

@@ -61,7 +61,7 @@ class _FakeResp:
     def __init__(self, payload):
         self._payload = payload
 
-    def read(self):
+    def read(self, *a):            # accepts an optional size (download_libc passes one)
         return self._payload
 
     def __enter__(self):
@@ -96,6 +96,49 @@ def test_query_libc_rip_handles_no_network(monkeypatch):
 def test_match_symbols_to_ints():
     out = L._match_symbols_to_ints({"system": "0x50d60", "bad": None})
     assert out == {"system": 0x50D60}
+
+
+# --- download (mocked) -------------------------------------------------------
+def test_download_rejects_non_https(tmp_path):
+    size, err = L.download_libc("http://libc.rip/download/x", str(tmp_path / "o"))
+    assert size is None and "untrusted" in err
+
+
+def test_download_rejects_foreign_host(tmp_path):
+    size, err = L.download_libc("https://evil.example.com/libc.so", str(tmp_path / "o"))
+    assert size is None and "untrusted" in err
+
+
+def test_download_writes_elf(tmp_path, monkeypatch):
+    payload = b"\x7fELF" + b"\x00" * 100
+    monkeypatch.setattr(L.urllib.request, "urlopen",
+                        lambda req, timeout=None: _FakeResp(payload))
+    dest = tmp_path / "libc.so"
+    size, err = L.download_libc("https://libc.rip/download/x", str(dest))
+    assert err is None
+    assert size == len(payload)
+    assert dest.read_bytes()[:4] == b"\x7fELF"
+
+
+def test_download_rejects_non_elf(tmp_path, monkeypatch):
+    monkeypatch.setattr(L.urllib.request, "urlopen",
+                        lambda req, timeout=None: _FakeResp(b"<html>nope</html>"))
+    dest = tmp_path / "libc.so"
+    size, err = L.download_libc("https://libc.rip/download/x", str(dest))
+    assert size is None and "ELF" in err
+    assert not dest.exists()               # nothing written on a bad payload
+
+
+def test_identify_and_download(tmp_path, monkeypatch):
+    monkeypatch.setattr(L, "query_libc_rip", lambda leaks, timeout=15: (
+        [{"id": "libc6_2.31_amd64",
+          "download_url": "https://libc.rip/download/x",
+          "symbols": {"puts": "0x84340"}}], None))
+    monkeypatch.setattr(L, "download_libc", lambda url, dest, timeout=30: (1234, None))
+    path, match, err = L.identify_and_download({"puts": 0x7F0000084340}, str(tmp_path))
+    assert err is None
+    assert match["id"] == "libc6_2.31_amd64"
+    assert path.endswith("libc6_2.31_amd64.so")
 
 
 # --- offline (folder of libc files) ------------------------------------------

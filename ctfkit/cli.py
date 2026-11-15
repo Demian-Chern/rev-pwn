@@ -55,6 +55,8 @@ def build_parser():
                     help="cyclic pattern length for --auto-offset (default 200)")
     sp.add_argument("--libc", default=None, metavar="LIBC",
                     help="embed libc ELF + one_gadget offsets into the skeleton")
+    sp.add_argument("--libc-leak", action="append", metavar="SYM=ADDR", default=[],
+                    help="identify+download libc from a leak (libc.rip), then embed it")
 
     sp = sub.add_parser("onegadget", help="list one_gadget execve gadgets in a libc")
     sp.add_argument("libc")
@@ -71,6 +73,8 @@ def build_parser():
                     help="do not query libc.rip (requires --libs)")
     sp.add_argument("--timeout", type=int, default=10,
                     help="libc.rip request timeout in seconds (default 10)")
+    sp.add_argument("--download", nargs="?", const=".", default=None, metavar="DIR",
+                    help="download the best-matching libc from libc.rip into DIR (default .)")
 
     sp = sub.add_parser("offset", help="auto-find the stack overflow offset (runs it)")
     sp.add_argument("binary")
@@ -126,12 +130,12 @@ def main(argv=None):
         elif args.cmd == "pwn":
             cmd_pwn(args.binary, args.out, args.host, args.port,
                     auto_offset=args.auto_offset, off_len=args.off_len,
-                    libc=args.libc)
+                    libc=args.libc, libc_leak=args.libc_leak)
         elif args.cmd == "onegadget":
             cmd_onegadget(args.libc, level=args.level, raw=args.raw)
         elif args.cmd == "libcid":
             cmd_libcid(args.leak, libs=args.libs, online=not args.offline,
-                       timeout=args.timeout)
+                       timeout=args.timeout, download=args.download)
         elif args.cmd == "offset":
             cmd_offset(args.binary, length=args.length, arg=args.arg,
                        update=args.update)

@@ -38,7 +38,9 @@
   tcache/UAF/double-free.
 - **libcid** — определение libc по утечке: `--leak puts=0x..340` → подбирает
   версию libc (онлайн через libc.rip или офлайн по папке `--libs`), считает базу
-  из лика и резолвит `system`/`str_bin_sh`/прочее.
+  из лика и резолвит `system`/`str_bin_sh`/прочее. С `--download` качает опознанную
+  libc (только с libc.rip, с проверкой ELF). А `pwn --libc-leak ...` делает всё
+  сразу: опознаёт → скачивает → вписывает libc и one_gadget'ы в скелет.
 - **libc** — GOT/PLT + заметки по ret2libc; с переданным `libc.so.6` вытащит
   оффсеты `system`/`puts`/`/bin/sh` и one_gadget'ы.
 - **без аргументов** — интерактивное меню (TUI).
@@ -130,6 +132,12 @@ python3 -m ctfkit libcid --leak puts=0x7f3b2c0a4340    # опознать libc �
 python3 -m ctfkit libcid --leak puts=0x..340 --libs ./libs   # офлайн, по своей папке
 ```
 ```bash
+python3 -m ctfkit libcid --leak puts=0x..340 --download      # скачать опознанную libc
+```
+```bash
+python3 -m ctfkit pwn ./chall --libc-leak puts=0x..340       # опознать+скачать+вписать
+```
+```bash
 python3 -m ctfkit pwn ./chall --libc ./libc.so.6       # вписать libc + one_gadget'ы
 ```
 ```bash
@@ -175,5 +183,5 @@ python -m pytest
 ## Хотелки на будущее
 
 - доставка паттерна через `recvuntil`-промпт и сокет (для авто-оффсета по сети)
-- авто-скачивание опознанной libc (по запросу) и подстановка в `pwn --libc`
 - готовые заготовки эксплойтов под конкретные техники (house-of-*, FSOP)
+- авто-скачивание loader/ld вместе с libc (для `patchelf`-воркфлоу)

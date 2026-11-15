@@ -13,6 +13,7 @@ leaks disambiguate better.
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from . import __version__
@@ -22,6 +23,9 @@ from .ui import C, bad, good, hdr, info, warn
 
 LIBC_RIP = "https://libc.rip/api/find"
 USER_AGENT = f"ctfkit/{__version__}"       # generic on purpose: no user identity
+# downloads are only ever fetched from libc.rip, never a host the API echoes back
+_DOWNLOAD_HOSTS = ("libc.rip",)
+_MAX_LIBC_BYTES = 64 * 1024 * 1024         # a libc is ~2 MiB; cap well above that
 
 
 # --- leak parsing & math -----------------------------------------------------
@@ -110,6 +114,60 @@ def _match_symbols_to_ints(sym_dict):
     return out
 
 
+def download_libc(url, dest, timeout=30):
+    """Download a libc from libc.rip to `dest`. Returns (size:int or None, err).
+
+    Guards: only https libc.rip URLs, size-capped, and the payload must be an
+    ELF -- so a tampered API response cannot redirect the download elsewhere or
+    drop arbitrary content on disk.
+    """
+    parsed = urllib.parse.urlparse(url or "")
+    host = parsed.hostname or ""
+    allowed = any(host == h or host.endswith("." + h) for h in _DOWNLOAD_HOSTS)
+    if parsed.scheme != "https" or not allowed:
+        return None, f"refusing to download from untrusted URL ({url})"
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = resp.read(_MAX_LIBC_BYTES + 1)
+    except urllib.error.URLError as e:
+        return None, f"download failed ({e.reason})"
+    except (TimeoutError, OSError) as e:
+        return None, f"download failed ({e})"
+    if len(data) > _MAX_LIBC_BYTES:
+        return None, "download too large (>64 MiB), aborted"
+    if data[:4] != b"\x7fELF":
+        return None, "downloaded data is not an ELF (unexpected response)"
+    try:
+        with open(dest, "wb") as f:
+            f.write(data)
+    except OSError as e:
+        return None, f"could not write {dest} ({e})"
+    return len(data), None
+
+
+def identify_and_download(leaks, dest_dir=".", timeout=15):
+    """Identify libc via libc.rip and download the best match.
+
+    Returns (path:str or None, match:dict or None, err:str or None).
+    """
+    matches, err = query_libc_rip(leaks, timeout=timeout)
+    if err:
+        return None, None, err
+    if not matches:
+        return None, None, "no match on libc.rip"
+    best = matches[0]
+    url = best.get("download_url")
+    if not url:
+        return None, best, "best match has no download_url"
+    name = (best.get("id") or "libc") + ".so"
+    dest = os.path.join(dest_dir, os.path.basename(name))
+    size, derr = download_libc(url, dest, timeout=timeout)
+    if derr:
+        return None, best, derr
+    return dest, best, None
+
+
 # --- offline: a folder of candidate libc files -------------------------------
 def _libc_symbols(path):
     """Exported symbol offsets of a libc file (+ str_bin_sh when possible)."""
@@ -170,7 +228,7 @@ def _show_resolved(leaks, symbols):
                 print(f"        {s:<22} off {C.GR}{hex(symbols[s])}{C.RST}")
 
 
-def cmd_libcid(leak_pairs, libs=None, online=True, timeout=10):
+def cmd_libcid(leak_pairs, libs=None, online=True, timeout=10, download=None):
     hdr("libc identify")
     try:
         leaks = parse_leaks(leak_pairs)
@@ -216,3 +274,21 @@ def cmd_libcid(leak_pairs, libs=None, online=True, timeout=10):
         _show_resolved(leaks, _match_symbols_to_ints(m.get("symbols")))
     if len(matches) > 8:
         info(f"... and {len(matches) - 8} more (add another leak to narrow it down)")
+
+    if download is not None:
+        if len(matches) > 1:
+            warn("multiple matches; downloading the first — add a leak to be sure")
+        best = matches[0]
+        dest_dir = download if isinstance(download, str) else "."
+        url = best.get("download_url")
+        if not url:
+            bad("best match has no download_url")
+            return
+        info(f"downloading {best.get('id')} from {url} ...")
+        dest = os.path.join(dest_dir, os.path.basename((best.get("id") or "libc") + ".so"))
+        size, derr = download_libc(url, dest, timeout=max(timeout, 30))
+        if derr:
+            bad(derr)
+            return
+        good(f"saved {C.BOLD}{dest}{C.RST} ({size} bytes)")
+        info(f"next:  ctfkit pwn <bin> --libc {dest}")

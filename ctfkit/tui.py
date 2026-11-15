@@ -74,7 +74,11 @@ def tui():
                 warn("no leaks given")
                 continue
             libs = input("  local libc folder? (blank = query libc.rip): ").strip() or None
-            cmd_libcid(leaks, libs=libs, online=libs is None)
+            dl = None
+            if libs is None:
+                ans = input("  download the matched libc? [y/N]: ").strip().lower()
+                dl = "." if ans in ("y", "yes") else None
+            cmd_libcid(leaks, libs=libs, online=libs is None, download=dl)
         elif choice == "7":
             out = input("  output file [heap.py]: ").strip() or "heap.py"
             cmd_heap(binpath, out, "CHANGE_ME", 0)

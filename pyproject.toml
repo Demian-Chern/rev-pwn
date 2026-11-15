@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ctfkit"
-version = "0.6.0"
+version = "0.7.0"
 description = "CTF helper for Linux ELF x86-64 (rev + pwn): triage, exploit-skeleton generation, ROP/GOT helpers"
 readme = "README.md"
 requires-python = ">=3.8"
