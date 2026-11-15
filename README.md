@@ -1,5 +1,7 @@
 # ctfkit
 
+[![CI](https://github.com/Demian-Chern/rev-pwn/actions/workflows/ci.yml/badge.svg)](https://github.com/Demian-Chern/rev-pwn/actions/workflows/ci.yml)
+
 Утилита-помощник для CTF под **Linux ELF x86-64** (rev + pwn): быстрый триаж
 бинаря, генерация скелета эксплойта на pwntools, ROP/GOT-хелперы. Чистый пакет
 без внешних зависимостей для базового режима + сборка в один портируемый
@@ -132,6 +134,19 @@ python3 exploit.py REMOTE    # коннект к HOST:PORT
 ```
 
 Дальше: находишь `OFFSET` через `cyclic`, доводишь выбранную заготовку — и го.
+
+## Тесты
+
+Юнит-тесты чистой логики (cyclic, парсер one_gadget, все ветки генератора,
+MiniELF, CLI) не требуют pwntools/gdb/one_gadget — только `pytest`:
+
+```bash
+pip install -e ".[dev]"
+python -m pytest
+```
+
+На каждый push GitHub Actions гоняет их на Python 3.8–3.13 и собирает `ctfkit.pyz`
+(см. бейдж вверху и `.github/workflows/ci.yml`).
 
 ## Заметки
 

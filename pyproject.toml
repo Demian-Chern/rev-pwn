@@ -16,9 +16,14 @@ dependencies = []
 # Install the full experience with:  pip install "ctfkit[full]"
 [project.optional-dependencies]
 full = ["pwntools>=4.11"]
+dev = ["pytest>=7"]
 
 [project.scripts]
 ctfkit = "ctfkit.cli:main"
 
 [tool.setuptools]
 packages = ["ctfkit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
