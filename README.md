@@ -15,6 +15,21 @@
   \__||____/ |_| |_|\_\|_|\__|
 ```
 
+## Команды
+
+| Команда | Что делает |
+|---|---|
+| `triage <bin>` | полный разбор бинаря + эвристический вектор атаки |
+| `pwn <bin>` | скелет эксплойта (BOF / ret2win / ret2libc / fmtstr); `--auto-offset`, `--libc`, `--libc-leak` |
+| `offset <bin>` | авто-поиск оффсета переполнения (свой cyclic + gdb) |
+| `onegadget <libc>` | магические `execve("/bin/sh")` гаджеты + их constraints |
+| `libcid --leak sym=addr` | опознание libc по утечке (libc.rip / офлайн), `--download` |
+| `heap <bin>` | скелет под heap-челлендж: парсит меню, даёт обёртки + шпаргалку |
+| `rop <bin>` | ROP-гаджеты и `/bin/sh` |
+| `libc <bin> <libc>` | GOT/PLT, оффсеты, one_gadget'ы |
+| `web` | локальный веб-интерфейс в браузере |
+| *(без аргументов)* | интерактивное меню (TUI) |
+
 ## Что делает
 
 - **triage** — за один запуск: тип файла, `checksec` (RELRO/Canary/NX/PIE),
