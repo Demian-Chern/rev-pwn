@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace">
+  <rect width="900" height="520" fill="#1a1d23"/>
+
+  <!-- header -->
+  <rect width="900" height="46" fill="#15171c"/>
+  <line x1="0" y1="46" x2="900" y2="46" stroke="#2a2e37"/>
+  <text x="20" y="30" fill="#56b6c2" font-size="16" font-weight="700" letter-spacing="0.5">ctfkit</text>
+  <text x="86" y="30" fill="#636973" font-size="12">v0.8.0 &#183; local UI &#183; 127.0.0.1</text>
+
+  <!-- sidebar -->
+  <rect x="0" y="46" width="300" height="474" fill="#1e2127"/>
+  <line x1="300" y1="46" x2="300" y2="520" stroke="#2a2e37"/>
+
+  <!-- fields -->
+  <text x="18" y="80" fill="#7f848e" font-size="10" letter-spacing="0.6">BINARY PATH</text>
+  <rect x="18" y="88" width="264" height="30" rx="6" fill="#15171c" stroke="#2a2e37"/>
+  <text x="29" y="108" fill="#c8ccd4" font-size="13">./chall</text>
+
+  <text x="18" y="138" fill="#7f848e" font-size="10" letter-spacing="0.6">LIBC PATH</text>
+  <rect x="18" y="146" width="264" height="30" rx="6" fill="#15171c" stroke="#2a2e37"/>
+  <text x="29" y="166" fill="#c8ccd4" font-size="13">./libc.so.6</text>
+
+  <text x="18" y="196" fill="#7f848e" font-size="10" letter-spacing="0.6">LEAKS</text>
+  <rect x="18" y="204" width="264" height="30" rx="6" fill="#15171c" stroke="#2a2e37"/>
+  <text x="29" y="224" fill="#c8ccd4" font-size="13">puts=0x7f3b2c0a4340</text>
+
+  <text x="18" y="254" fill="#7f848e" font-size="10" letter-spacing="0.6">OUTPUT</text>
+  <text x="112" y="254" fill="#7f848e" font-size="10" letter-spacing="0.6">HOST</text>
+  <text x="206" y="254" fill="#7f848e" font-size="10" letter-spacing="0.6">PORT</text>
+  <rect x="18" y="262" width="82" height="28" rx="6" fill="#15171c" stroke="#2a2e37"/>
+  <text x="29" y="281" fill="#c8ccd4" font-size="12">exploit.py</text>
+  <rect x="110" y="262" width="82" height="28" rx="6" fill="#15171c" stroke="#2a2e37"/>
+  <text x="121" y="281" fill="#c8ccd4" font-size="12">ctf.io</text>
+  <rect x="202" y="262" width="80" height="28" rx="6" fill="#15171c" stroke="#2a2e37"/>
+  <text x="213" y="281" fill="#c8ccd4" font-size="12">1337</text>
+
+  <!-- buttons row 1 -->
+  <rect x="18" y="320" width="66" height="30" rx="6" fill="#2d5a63" stroke="#56b6c2"/>
+  <text x="51" y="340" fill="#cdeef2" font-size="12" font-weight="600" text-anchor="middle">Triage</text>
+  <rect x="92" y="320" width="48" height="30" rx="6" fill="#2a2e37" stroke="#363b45"/>
+  <text x="116" y="340" fill="#d7dae1" font-size="12" text-anchor="middle">ROP</text>
+  <rect x="148" y="320" width="62" height="30" rx="6" fill="#2a2e37" stroke="#363b45"/>
+  <text x="179" y="340" fill="#d7dae1" font-size="12" text-anchor="middle">Offset</text>
+  <rect x="218" y="320" width="48" height="30" rx="6" fill="#2a2e37" stroke="#363b45"/>
+  <text x="242" y="340" fill="#d7dae1" font-size="12" text-anchor="middle">Pwn</text>
+
+  <!-- buttons row 2 -->
+  <rect x="18" y="358" width="54" height="30" rx="6" fill="#2a2e37" stroke="#363b45"/>
+  <text x="45" y="378" fill="#d7dae1" font-size="12" text-anchor="middle">Heap</text>
+  <rect x="80" y="358" width="46" height="30" rx="6" fill="#2a2e37" stroke="#363b45"/>
+  <text x="103" y="378" fill="#d7dae1" font-size="12" text-anchor="middle">libc</text>
+  <rect x="134" y="358" width="88" height="30" rx="6" fill="#2a2e37" stroke="#363b45"/>
+  <text x="178" y="378" fill="#d7dae1" font-size="12" text-anchor="middle">onegadget</text>
+  <rect x="230" y="358" width="52" height="30" rx="6" fill="#2a2e37" stroke="#363b45"/>
+  <text x="256" y="378" fill="#d7dae1" font-size="12" text-anchor="middle">libcid</text>
+
+  <text x="18" y="412" fill="#636973" font-size="11">Server is local. offset &amp; auto-offset</text>
+  <text x="18" y="428" fill="#636973" font-size="11">execute the target binary.</text>
+
+  <!-- output pane -->
+  <text x="322" y="80" fill="#56b6c2" font-size="13" font-weight="600">== Target ==</text>
+  <text x="322" y="104" fill="#8a909b" font-size="13">  File</text>
+  <text x="470" y="104" fill="#c8ccd4" font-size="13">./chall</text>
+
+  <text x="322" y="134" fill="#56b6c2" font-size="13" font-weight="600">== Mitigations (checksec) ==</text>
+  <text x="322" y="158" fill="#7f848e" font-size="13">  RELRO</text>
+  <text x="470" y="158" fill="#98c379" font-size="13">Full</text>
+  <text x="322" y="180" fill="#7f848e" font-size="13">  Stack Canary</text>
+  <text x="470" y="180" fill="#98c379" font-size="13">No</text>
+  <text x="322" y="202" fill="#7f848e" font-size="13">  NX</text>
+  <text x="470" y="202" fill="#d19a66" font-size="13">Enabled</text>
+  <text x="322" y="224" fill="#7f848e" font-size="13">  PIE</text>
+  <text x="470" y="224" fill="#98c379" font-size="13">No PIE</text>
+
+  <text x="322" y="256" fill="#56b6c2" font-size="13" font-weight="600">== Potential win/backdoor functions ==</text>
+  <text x="322" y="280" fill="#98c379" font-size="13">  [+]</text>
+  <text x="352" y="280" fill="#c8ccd4" font-size="13">give_shell @</text>
+  <text x="470" y="280" fill="#56b6c2" font-size="13">0x401234</text>
+
+  <text x="322" y="312" fill="#56b6c2" font-size="13" font-weight="600">== Likely attack path (heuristic) ==</text>
+  <text x="322" y="336" fill="#c678dd" font-size="13">  -&gt;</text>
+  <text x="348" y="336" fill="#c8ccd4" font-size="13">gets present -&gt; classic stack overflow</text>
+  <text x="322" y="358" fill="#c678dd" font-size="13">  -&gt;</text>
+  <text x="348" y="358" fill="#c8ccd4" font-size="13">No PIE -&gt; ret2win/plt is easy</text>
+
+  <text x="322" y="392" fill="#7f848e" font-size="13">  [*]</text>
+  <text x="352" y="392" fill="#7f848e" font-size="13">Next: ctfkit pwn ./chall</text>
+</svg>
