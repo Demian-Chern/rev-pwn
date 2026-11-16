@@ -106,12 +106,18 @@ ctfkit/
   tui.py          интерактивное меню
   cli.py          argparse + диспетчер
 pyproject.toml    установка, точка входа `ctfkit`
-build.py          сборка одного файла ctfkit.pyz (zipapp)
+make_pyz.py       сборка одного файла ctfkit.pyz (zipapp)
 ```
 
 ## Установка / запуск
 
-Три способа — выбирай под ситуацию.
+Несколько способов — выбирай под ситуацию.
+
+**0. С PyPI (после релиза, см. [RELEASING.md](RELEASING.md)):**
+```bash
+pip install ctfkit
+ctfkit triage ./chall
+```
 
 **1. Поставить как пакет (локальная разработка):**
 ```bash
@@ -126,12 +132,12 @@ python3 -m ctfkit triage ./chall
 
 **3. Один файл на удалённую тачку (главная фишка):**
 ```bash
-python3 build.py                 # собирает ctfkit.pyz
+python3 make_pyz.py              # собирает ctfkit.pyz
 scp ctfkit.pyz user@box:~/
 python3 ctfkit.pyz triage ./chall
 ```
 `ctfkit.pyz` уже лежит в репо собранным — можно сразу копировать. После правок
-кода пересобери через `python3 build.py`.
+кода пересобери через `python3 make_pyz.py`.
 
 ### Зависимости
 

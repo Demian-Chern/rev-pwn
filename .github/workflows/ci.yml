@@ -34,6 +34,6 @@ jobs:
           python-version: "3.12"
       - name: Build ctfkit.pyz and smoke-run it
         run: |
-          python build.py
+          python make_pyz.py
           python ctfkit.pyz --version
           python ctfkit.pyz --help

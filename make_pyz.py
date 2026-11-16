@@ -8,7 +8,9 @@ and run directly:
     ./ctfkit.pyz triage ./chall          # on Linux (executable bit + shebang)
 
 Usage:
-    python3 build.py
+    python3 make_pyz.py
+
+(Named make_pyz.py, not build.py, so it doesn't shadow the PyPI `build` module.)
 """
 import pathlib
 import shutil
