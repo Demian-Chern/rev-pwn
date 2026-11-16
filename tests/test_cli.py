@@ -12,6 +12,7 @@ from ctfkit.cli import build_parser, main
     (["onegadget", "libc"], "onegadget"),
     (["heap", "b"], "heap"),
     (["solve", "b"], "solve"),
+    (["seccomp", "b"], "seccomp"),
     (["rop", "b"], "rop"),
     (["libc", "b"], "libc"),
 ])
@@ -50,6 +51,13 @@ def test_pwn_libc_leak_flag():
     ns = build_parser().parse_args(
         ["pwn", "b", "--libc-leak", "puts=0x340", "--libc-leak", "printf=0xf90"])
     assert ns.libc_leak == ["puts=0x340", "printf=0xf90"]
+
+
+def test_shellcode_flags_parse():
+    ns = build_parser().parse_args(
+        ["shellcode", "orw", "--arg", "flag.txt", "--arch", "i386"])
+    assert ns.cmd == "shellcode" and ns.kind == "orw"
+    assert ns.arg == "flag.txt" and ns.arch == "i386"
 
 
 def test_patchelf_flags_parse():

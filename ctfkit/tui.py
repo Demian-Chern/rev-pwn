@@ -9,6 +9,8 @@ from .offset import cmd_offset
 from .patchelf import cmd_patchelf
 from .pwngen import cmd_pwn
 from .rop import cmd_rop
+from .seccomp import cmd_seccomp
+from .shellcode import cmd_shellcode
 from .solve import cmd_solve
 from .triage import cmd_triage
 from .ui import BANNER, C, bad, warn
@@ -43,6 +45,8 @@ def tui():
   {C.G}8{C.RST}) Launch the web UI (browser)
   {C.G}9{C.RST}) Symbolic solve a crackme (angr)
   {C.G}p{C.RST}) patchelf: run under a downloaded libc
+  {C.G}c{C.RST}) seccomp filter dump
+  {C.G}s{C.RST}) generate shellcode
   {C.G}q{C.RST}) Quit
 """)
         choice = input(f"{C.BOLD}> {C.RST}").strip().lower()
@@ -105,6 +109,12 @@ def tui():
                 cmd_patchelf(binpath, lc, apply=ap in ("y", "yes"))
             else:
                 warn("no libc given")
+        elif choice == "c":
+            cmd_seccomp(binpath)
+        elif choice == "s":
+            kind = input("  kind [sh/orw/cat/exec/srop] (sh): ").strip() or "sh"
+            a = input("  arg (file for orw/cat, prog for exec): ").strip() or None
+            cmd_shellcode(kind, arg=a)
         elif choice in ("q", "quit", "exit"):
             break
         else:

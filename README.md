@@ -34,6 +34,8 @@
 | `heap <bin>` | скелет под heap-челлендж: парсит меню, даёт обёртки + шпаргалку |
 | `solve <bin> --find TEXT` | символьно решает crackme через angr (находит вход/флаг) |
 | `patchelf <bin> --libc <libc>` | патчит копию бинаря под нужную libc (ld + replace-needed) |
+| `seccomp <bin>` | дамп seccomp-фильтра (seccomp-tools) или статическая эвристика |
+| `shellcode <kind>` | генерит shellcode (sh / orw / exec / srop) через pwntools |
 | `rop <bin>` | ROP-гаджеты и `/bin/sh` |
 | `libc <bin> <libc>` | GOT/PLT, оффсеты, one_gadget'ы |
 | `web` | локальный веб-интерфейс в браузере |
@@ -66,6 +68,10 @@
 - **patchelf** — чтобы чужой челлендж запускался под нужной libc: находит loader
   (`ld-*.so`) рядом с libc, печатает `patchelf --set-interpreter` / `--replace-needed`,
   а с `--apply` патчит **копию** бинаря (оригинал не трогает).
+- **seccomp** — дамп seccomp-фильтра через `seccomp-tools dump`; без тулзы — статическая
+  эвристика (ссылки на prctl/seccomp) и подсказка, как поставить.
+- **shellcode** — генератор через pwntools shellcraft: `sh`, `orw`/`cat <file>` (читать
+  флаг), `exec`, плюс печатный шаблон SROP. Выдаёт байты (hex/escaped) и сниппет.
 - **web** — локальный веб-интерфейс в браузере (на stdlib, без зависимостей):
   панель с кнопками на все команды и цветным выводом. Слушает только `127.0.0.1`,
   API защищён токеном.
@@ -134,8 +140,9 @@ python3 ctfkit.pyz triage ./chall
 ```bash
 pip install pwntools          # точный checksec, символы, ROP
 sudo apt install binutils     # readelf/objdump/nm для fallback
-sudo apt install gdb          # нужен для `offset` (авто-поиск оффсета)
+sudo apt install gdb patchelf # gdb для `offset`, patchelf для `patchelf --apply`
 gem install one_gadget        # нужен для `onegadget` / `pwn --libc`
+gem install seccomp-tools     # нужен для `seccomp` (иначе статическая эвристика)
 pip install ROPgadget ropper  # опционально, rop без pwntools
 ```
 
@@ -184,6 +191,12 @@ python3 -m ctfkit solve ./crackme --find "Correct!"    # символьно на
 python3 -m ctfkit patchelf ./chall --libc ./libc.so.6 --apply   # запуск под этой libc
 ```
 ```bash
+python3 -m ctfkit seccomp ./chall                      # дамп seccomp-фильтра
+```
+```bash
+python3 -m ctfkit shellcode orw --arg flag.txt -o sc.bin   # shellcode «прочитать флаг»
+```
+```bash
 python3 -m ctfkit web                                   # веб-интерфейс в браузере
 ```
 ```bash
@@ -228,5 +241,5 @@ python -m pytest
 - доставка паттерна через `recvuntil`-промпт и сокет (для авто-оффсета по сети)
 - готовые заготовки эксплойтов под конкретные техники (house-of-*, FSOP)
 - авто-скачивание `ld` с libc.rip, чтобы `patchelf` работал без локального loader'а
-- `seccomp-tools dump` и генератор shellcode (orw / SROP)
+- готовые заготовки эксплойтов под техники (house-of-*, FSOP)
 - публикация на PyPI (`pip install ctfkit`)

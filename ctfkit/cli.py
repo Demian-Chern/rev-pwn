@@ -13,6 +13,8 @@ from .onegadget import cmd_onegadget
 from .patchelf import cmd_patchelf
 from .pwngen import cmd_pwn
 from .rop import cmd_rop
+from .seccomp import cmd_seccomp
+from .shellcode import cmd_shellcode
 from .solve import cmd_solve
 from .triage import cmd_triage
 from .tui import tui
@@ -37,6 +39,8 @@ def build_parser():
               ctfkit heap ./chall                     # scaffold a heap exploit
               ctfkit solve ./crackme --find Correct   # symbolic solve (angr)
               ctfkit patchelf ./chall --libc ./libc.so.6 --apply   # run under that libc
+              ctfkit seccomp ./chall                  # dump the seccomp filter
+              ctfkit shellcode orw --arg flag.txt     # generate shellcode
               ctfkit web                              # local web UI (browser)
               ctfkit rop ./chall
               ctfkit libc ./chall ./libc.so.6
@@ -121,6 +125,17 @@ def build_parser():
     sp.add_argument("--arg", action="store_true",
                     help="feed the input as argv[1] instead of stdin")
 
+    sp = sub.add_parser("seccomp", help="dump a binary's seccomp filter")
+    sp.add_argument("binary")
+
+    sp = sub.add_parser("shellcode", help="generate shellcode via pwntools shellcraft")
+    sp.add_argument("kind", choices=["sh", "orw", "cat", "exec", "srop"],
+                    help="payload type")
+    sp.add_argument("--arg", default=None, help="file path (orw/cat) or program (exec)")
+    sp.add_argument("--arch", default="amd64", choices=["amd64", "i386"],
+                    help="target arch (default amd64)")
+    sp.add_argument("-o", "--out", default=None, help="write raw bytes to this file")
+
     sp = sub.add_parser("web", help="launch a local web UI in the browser")
     sp.add_argument("--port", type=int, default=8777, help="port (default 8777)")
     sp.add_argument("--host", default="127.0.0.1",
@@ -152,7 +167,7 @@ def main(argv=None):
 
     # commands that take a filesystem path as their positional argument
     if args.cmd in ("triage", "pwn", "offset", "rop", "libc", "heap", "solve",
-                    "patchelf"):
+                    "patchelf", "seccomp"):
         target = args.binary
     elif args.cmd == "onegadget":
         target = args.libc
@@ -185,6 +200,10 @@ def main(argv=None):
         elif args.cmd == "patchelf":
             cmd_patchelf(args.binary, args.libc, ld=args.ld, out=args.out,
                          apply=args.apply)
+        elif args.cmd == "seccomp":
+            cmd_seccomp(args.binary)
+        elif args.cmd == "shellcode":
+            cmd_shellcode(args.kind, arg=args.arg, arch=args.arch, out=args.out)
         elif args.cmd == "web":
             cmd_web(port=args.port, no_browser=args.no_browser, host=args.host)
         elif args.cmd == "rop":
