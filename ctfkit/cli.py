@@ -10,6 +10,7 @@ from .libc import cmd_libc
 from .libcid import cmd_libcid
 from .offset import cmd_offset
 from .onegadget import cmd_onegadget
+from .patchelf import cmd_patchelf
 from .pwngen import cmd_pwn
 from .rop import cmd_rop
 from .solve import cmd_solve
@@ -35,6 +36,7 @@ def build_parser():
               ctfkit libcid --leak puts=0x7f..340     # identify libc from a leak
               ctfkit heap ./chall                     # scaffold a heap exploit
               ctfkit solve ./crackme --find Correct   # symbolic solve (angr)
+              ctfkit patchelf ./chall --libc ./libc.so.6 --apply   # run under that libc
               ctfkit web                              # local web UI (browser)
               ctfkit rop ./chall
               ctfkit libc ./chall ./libc.so.6
@@ -96,6 +98,14 @@ def build_parser():
     sp.add_argument("--port", type=int, default=0, help="remote port")
     sp.add_argument("--libc", default=None, help="libc ELF to reference in the skeleton")
 
+    sp = sub.add_parser("patchelf", help="patch a binary to run under a given libc")
+    sp.add_argument("binary")
+    sp.add_argument("--libc", required=True, help="the libc.so.6 to run against")
+    sp.add_argument("--ld", default=None, help="loader (auto-found next to libc if omitted)")
+    sp.add_argument("-o", "--out", default=None, help="patched copy path (default <bin>.patched)")
+    sp.add_argument("--apply", action="store_true",
+                    help="actually run patchelf on the copy (needs patchelf installed)")
+
     sp = sub.add_parser("solve", help="symbolic crackme solver (angr)")
     sp.add_argument("binary")
     sp.add_argument("--find", default=None, metavar="TEXT",
@@ -141,7 +151,8 @@ def main(argv=None):
         return 0
 
     # commands that take a filesystem path as their positional argument
-    if args.cmd in ("triage", "pwn", "offset", "rop", "libc", "heap", "solve"):
+    if args.cmd in ("triage", "pwn", "offset", "rop", "libc", "heap", "solve",
+                    "patchelf"):
         target = args.binary
     elif args.cmd == "onegadget":
         target = args.libc
@@ -171,6 +182,9 @@ def main(argv=None):
             cmd_solve(args.binary, find=args.find, find_addr=args.find_addr,
                       avoid=args.avoid, avoid_addr=args.avoid_addr,
                       length=args.length, use_arg=args.arg)
+        elif args.cmd == "patchelf":
+            cmd_patchelf(args.binary, args.libc, ld=args.ld, out=args.out,
+                         apply=args.apply)
         elif args.cmd == "web":
             cmd_web(port=args.port, no_browser=args.no_browser, host=args.host)
         elif args.cmd == "rop":

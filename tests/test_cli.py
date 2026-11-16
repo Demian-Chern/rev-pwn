@@ -52,6 +52,13 @@ def test_pwn_libc_leak_flag():
     assert ns.libc_leak == ["puts=0x340", "printf=0xf90"]
 
 
+def test_patchelf_flags_parse():
+    ns = build_parser().parse_args(
+        ["patchelf", "chall", "--libc", "libc.so.6", "--ld", "ld.so", "--apply"])
+    assert ns.cmd == "patchelf"
+    assert ns.libc == "libc.so.6" and ns.ld == "ld.so" and ns.apply is True
+
+
 def test_solve_flags_parse():
     ns = build_parser().parse_args(
         ["solve", "crackme", "--find", "Correct", "--len", "48", "--arg"])

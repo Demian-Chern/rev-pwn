@@ -33,6 +33,7 @@
 | `libcid --leak sym=addr` | опознание libc по утечке (libc.rip / офлайн), `--download` |
 | `heap <bin>` | скелет под heap-челлендж: парсит меню, даёт обёртки + шпаргалку |
 | `solve <bin> --find TEXT` | символьно решает crackme через angr (находит вход/флаг) |
+| `patchelf <bin> --libc <libc>` | патчит копию бинаря под нужную libc (ld + replace-needed) |
 | `rop <bin>` | ROP-гаджеты и `/bin/sh` |
 | `libc <bin> <libc>` | GOT/PLT, оффсеты, one_gadget'ы |
 | `web` | локальный веб-интерфейс в браузере |
@@ -62,6 +63,9 @@
 - **solve** — символьное решение crackme через **angr**: ищет вход (stdin или
   `--arg`), приводящий к успеху (`--find "Correct"` или `--find-addr`), избегая
   `--avoid`. angr — опциональная тяжёлая зависимость (`pip install ctfkit[solve]`).
+- **patchelf** — чтобы чужой челлендж запускался под нужной libc: находит loader
+  (`ld-*.so`) рядом с libc, печатает `patchelf --set-interpreter` / `--replace-needed`,
+  а с `--apply` патчит **копию** бинаря (оригинал не трогает).
 - **web** — локальный веб-интерфейс в браузере (на stdlib, без зависимостей):
   панель с кнопками на все команды и цветным выводом. Слушает только `127.0.0.1`,
   API защищён токеном.
@@ -177,6 +181,9 @@ python3 -m ctfkit heap ./chall -o heap.py              # скелет под hea
 python3 -m ctfkit solve ./crackme --find "Correct!"    # символьно найти флаг (angr)
 ```
 ```bash
+python3 -m ctfkit patchelf ./chall --libc ./libc.so.6 --apply   # запуск под этой libc
+```
+```bash
 python3 -m ctfkit web                                   # веб-интерфейс в браузере
 ```
 ```bash
@@ -220,4 +227,6 @@ python -m pytest
 
 - доставка паттерна через `recvuntil`-промпт и сокет (для авто-оффсета по сети)
 - готовые заготовки эксплойтов под конкретные техники (house-of-*, FSOP)
-- авто-скачивание loader/ld вместе с libc (для `patchelf`-воркфлоу)
+- авто-скачивание `ld` с libc.rip, чтобы `patchelf` работал без локального loader'а
+- `seccomp-tools dump` и генератор shellcode (orw / SROP)
+- публикация на PyPI (`pip install ctfkit`)

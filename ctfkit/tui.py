@@ -6,6 +6,7 @@ from .heap import cmd_heap
 from .libc import cmd_libc
 from .libcid import cmd_libcid
 from .offset import cmd_offset
+from .patchelf import cmd_patchelf
 from .pwngen import cmd_pwn
 from .rop import cmd_rop
 from .solve import cmd_solve
@@ -41,6 +42,7 @@ def tui():
   {C.G}7{C.RST}) Scaffold a heap exploit (menu wrappers)
   {C.G}8{C.RST}) Launch the web UI (browser)
   {C.G}9{C.RST}) Symbolic solve a crackme (angr)
+  {C.G}p{C.RST}) patchelf: run under a downloaded libc
   {C.G}q{C.RST}) Quit
 """)
         choice = input(f"{C.BOLD}> {C.RST}").strip().lower()
@@ -96,6 +98,13 @@ def tui():
             except ValueError:
                 ln = 32
             cmd_solve(binpath, find=(txt or None), length=ln)
+        elif choice == "p":
+            lc = input("  libc path: ").strip()
+            if lc:
+                ap = input("  apply patchelf now? [y/N]: ").strip().lower()
+                cmd_patchelf(binpath, lc, apply=ap in ("y", "yes"))
+            else:
+                warn("no libc given")
         elif choice in ("q", "quit", "exit"):
             break
         else:
