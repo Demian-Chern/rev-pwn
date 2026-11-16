@@ -12,6 +12,7 @@ from .offset import cmd_offset
 from .onegadget import cmd_onegadget
 from .pwngen import cmd_pwn
 from .rop import cmd_rop
+from .solve import cmd_solve
 from .triage import cmd_triage
 from .tui import tui
 from .ui import bad
@@ -33,6 +34,7 @@ def build_parser():
               ctfkit onegadget ./libc.so.6            # magic execve gadgets
               ctfkit libcid --leak puts=0x7f..340     # identify libc from a leak
               ctfkit heap ./chall                     # scaffold a heap exploit
+              ctfkit solve ./crackme --find Correct   # symbolic solve (angr)
               ctfkit web                              # local web UI (browser)
               ctfkit rop ./chall
               ctfkit libc ./chall ./libc.so.6
@@ -94,6 +96,21 @@ def build_parser():
     sp.add_argument("--port", type=int, default=0, help="remote port")
     sp.add_argument("--libc", default=None, help="libc ELF to reference in the skeleton")
 
+    sp = sub.add_parser("solve", help="symbolic crackme solver (angr)")
+    sp.add_argument("binary")
+    sp.add_argument("--find", default=None, metavar="TEXT",
+                    help="success = this text appears on stdout")
+    sp.add_argument("--find-addr", default=None, metavar="ADDR",
+                    help="success = reaching this address (hex)")
+    sp.add_argument("--avoid", default=None, metavar="TEXT",
+                    help="avoid = this text appears on stdout")
+    sp.add_argument("--avoid-addr", default=None, metavar="ADDR",
+                    help="avoid = reaching this address (hex)")
+    sp.add_argument("--len", type=int, default=32, dest="length",
+                    help="symbolic input length in bytes (default 32)")
+    sp.add_argument("--arg", action="store_true",
+                    help="feed the input as argv[1] instead of stdin")
+
     sp = sub.add_parser("web", help="launch a local web UI in the browser")
     sp.add_argument("--port", type=int, default=8777, help="port (default 8777)")
     sp.add_argument("--host", default="127.0.0.1",
@@ -124,7 +141,7 @@ def main(argv=None):
         return 0
 
     # commands that take a filesystem path as their positional argument
-    if args.cmd in ("triage", "pwn", "offset", "rop", "libc", "heap"):
+    if args.cmd in ("triage", "pwn", "offset", "rop", "libc", "heap", "solve"):
         target = args.binary
     elif args.cmd == "onegadget":
         target = args.libc
@@ -150,6 +167,10 @@ def main(argv=None):
                        update=args.update)
         elif args.cmd == "heap":
             cmd_heap(args.binary, args.out, args.host, args.port, libc=args.libc)
+        elif args.cmd == "solve":
+            cmd_solve(args.binary, find=args.find, find_addr=args.find_addr,
+                      avoid=args.avoid, avoid_addr=args.avoid_addr,
+                      length=args.length, use_arg=args.arg)
         elif args.cmd == "web":
             cmd_web(port=args.port, no_browser=args.no_browser, host=args.host)
         elif args.cmd == "rop":

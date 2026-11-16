@@ -11,6 +11,7 @@ from ctfkit.cli import build_parser, main
     (["offset", "b"], "offset"),
     (["onegadget", "libc"], "onegadget"),
     (["heap", "b"], "heap"),
+    (["solve", "b"], "solve"),
     (["rop", "b"], "rop"),
     (["libc", "b"], "libc"),
 ])
@@ -49,6 +50,13 @@ def test_pwn_libc_leak_flag():
     ns = build_parser().parse_args(
         ["pwn", "b", "--libc-leak", "puts=0x340", "--libc-leak", "printf=0xf90"])
     assert ns.libc_leak == ["puts=0x340", "printf=0xf90"]
+
+
+def test_solve_flags_parse():
+    ns = build_parser().parse_args(
+        ["solve", "crackme", "--find", "Correct", "--len", "48", "--arg"])
+    assert ns.cmd == "solve"
+    assert ns.find == "Correct" and ns.length == 48 and ns.arg is True
 
 
 def test_web_parses_without_positional():

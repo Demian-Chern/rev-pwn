@@ -268,15 +268,18 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(404, "not found", "text/plain")
 
     def do_POST(self):
+        # always drain the request body first -- not reading it before replying
+        # with an error makes some clients see a connection reset, not the status
+        length = int(self.headers.get("Content-Length") or 0)
+        body = self.rfile.read(length) if length > 0 else b""
         if self.path.split("?")[0] != "/api/run":
             self._send(404, "not found", "text/plain")
             return
         if self.headers.get("X-CTFKit-Token", "") != self.token:
             self._send(403, '{"error":"bad token"}', "application/json")
             return
-        length = int(self.headers.get("Content-Length") or 0)
         try:
-            payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
+            payload = json.loads(body.decode("utf-8") or "{}")
         except (ValueError, UnicodeDecodeError):
             self._send(400, '{"error":"bad json"}', "application/json")
             return

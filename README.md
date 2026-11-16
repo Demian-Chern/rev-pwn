@@ -32,6 +32,7 @@
 | `onegadget <libc>` | магические `execve("/bin/sh")` гаджеты + их constraints |
 | `libcid --leak sym=addr` | опознание libc по утечке (libc.rip / офлайн), `--download` |
 | `heap <bin>` | скелет под heap-челлендж: парсит меню, даёт обёртки + шпаргалку |
+| `solve <bin> --find TEXT` | символьно решает crackme через angr (находит вход/флаг) |
 | `rop <bin>` | ROP-гаджеты и `/bin/sh` |
 | `libc <bin> <libc>` | GOT/PLT, оффсеты, one_gadget'ы |
 | `web` | локальный веб-интерфейс в браузере |
@@ -58,6 +59,9 @@
 - **heap** — скелет под heap-челлендж: парсит меню (alloc/free/edit/show + номера
   и промпты), генерит обёртки `alloc/free/edit/show` и шпаргалку по
   tcache/UAF/double-free.
+- **solve** — символьное решение crackme через **angr**: ищет вход (stdin или
+  `--arg`), приводящий к успеху (`--find "Correct"` или `--find-addr`), избегая
+  `--avoid`. angr — опциональная тяжёлая зависимость (`pip install ctfkit[solve]`).
 - **web** — локальный веб-интерфейс в браузере (на stdlib, без зависимостей):
   панель с кнопками на все команды и цветным выводом. Слушает только `127.0.0.1`,
   API защищён токеном.
@@ -168,6 +172,9 @@ python3 -m ctfkit pwn ./chall --libc ./libc.so.6       # вписать libc + o
 ```
 ```bash
 python3 -m ctfkit heap ./chall -o heap.py              # скелет под heap-челлендж
+```
+```bash
+python3 -m ctfkit solve ./crackme --find "Correct!"    # символьно найти флаг (angr)
 ```
 ```bash
 python3 -m ctfkit web                                   # веб-интерфейс в браузере

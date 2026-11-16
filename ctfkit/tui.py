@@ -8,6 +8,7 @@ from .libcid import cmd_libcid
 from .offset import cmd_offset
 from .pwngen import cmd_pwn
 from .rop import cmd_rop
+from .solve import cmd_solve
 from .triage import cmd_triage
 from .ui import BANNER, C, bad, warn
 from .web import cmd_web
@@ -39,6 +40,7 @@ def tui():
   {C.G}6{C.RST}) Identify libc from a leak (libc.rip / local)
   {C.G}7{C.RST}) Scaffold a heap exploit (menu wrappers)
   {C.G}8{C.RST}) Launch the web UI (browser)
+  {C.G}9{C.RST}) Symbolic solve a crackme (angr)
   {C.G}q{C.RST}) Quit
 """)
         choice = input(f"{C.BOLD}> {C.RST}").strip().lower()
@@ -86,6 +88,14 @@ def tui():
             cmd_heap(binpath, out, "CHANGE_ME", 0)
         elif choice == "8":
             cmd_web()                       # blocks until Ctrl-C, then back to menu
+        elif choice == "9":
+            txt = input("  success string on stdout (e.g. Correct): ").strip()
+            ln = input("  input length [32]: ").strip() or "32"
+            try:
+                ln = int(ln)
+            except ValueError:
+                ln = 32
+            cmd_solve(binpath, find=(txt or None), length=ln)
         elif choice in ("q", "quit", "exit"):
             break
         else:

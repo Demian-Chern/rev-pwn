@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ctfkit"
-version = "0.8.0"
+version = "0.9.0"
 description = "CTF helper for Linux ELF x86-64 (rev + pwn): triage, exploit-skeleton generation, ROP/GOT helpers"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -16,6 +16,7 @@ dependencies = []
 # Install the full experience with:  pip install "ctfkit[full]"
 [project.optional-dependencies]
 full = ["pwntools>=4.11"]
+solve = ["angr>=9.2"]      # heavy; for the `solve` command only
 dev = ["pytest>=7"]
 
 [project.scripts]
